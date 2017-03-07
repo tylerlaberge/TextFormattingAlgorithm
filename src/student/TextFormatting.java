@@ -5,40 +5,106 @@ package student;
  *   formatParagraph - which formats one paragraph
  */
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 
 public class TextFormatting {
-    // simple greedy paragraph formating that just packs each line as full as possible
-    // this will usually not give an optimal result
-    //
-    // input:
-    //   words: an array of the words in the paragraph
-    //   width: the desired formatting width
-    //   result: an empty ArrayList into which you should add the resulting paragraph
-    //
-    // returns:
-    //   the formatted paragraph as an ArrayList of Strings, 1 string for each
-    //     formatted line of the paragraph
-    //   the return value is the total calculated badness value for the paragraph
-    public static int formatParagraph(String[] words, int width, ArrayList<String> result)  {
-        int i = 0;
-        int badness = 0;
-        while (i < words.length) {       // this loop adds another line to result
-            StringBuilder buf = new StringBuilder();
-            buf.append(words[i++]);
-            // add more words until full
-            while (i < words.length && buf.length() + 1 + words[i].length() <= width)
-                buf.append(" "+words[i++]);      // space between words
+    /*
+    simple greedy paragraph formating that just packs each line as full as possible
+    this will usually not give an optimal result
 
-            badness += Math.pow(width-buf.length(), 3);
-            result.add(buf.toString());   // add this line to the paragraph
+    input:
+      words: an array of the words in the paragraph
+      width: the desired formatting width
+      result: an empty ArrayList into which you should add the resulting paragraph
+
+    returns:
+      the formatted paragraph as an ArrayList of Strings, 1 string for each
+        formatted line of the paragraph
+      the return value is the total calculated badness value for the paragraph
+    */
+    public static int formatParagraph(String[] words, int width, ArrayList<String> result) {
+        int[][] table = buildTable(words, width);
+        ArrayList<Integer> optimal_breaks = new ArrayList<>();
+        int badness = optimalBadness(table, optimal_breaks);
+
+        int previous_break = 0;
+        for(int optimal_break : optimal_breaks) {
+            result.add(String.join(" ", Arrays.copyOfRange(words, previous_break, optimal_break)));
+            previous_break = optimal_break;
         }
+        result.add(String.join(" ", Arrays.copyOfRange(words, previous_break, words.length)));
+
         return badness;
     }
 
     // extra credit paragraph formatting that has no late penalty for the last line of the paragraph
     public static int xc_formatParagraph(String[] words, int width, ArrayList<String> result) {
-        return -1;		// not implemented
+        return -1;        // not implemented
     }
 
-}
+    private static int[][] buildTable(String[] words, int width) {
+        int[][] table = new int[words.length][words.length];
 
+        for (int i = 0; i < words.length; i++) {
+            for (int j = i; j < words.length; j++) {
+                table[i][j] = calculateBadness(Arrays.copyOfRange(words, i, j + 1), width);
+            }
+        }
+        return table;
+    }
+
+    private static int calculateBadness(String[] words, int width) {
+        int line_length = String.join(" ", (CharSequence[]) words).length();
+        int remaining_space = width - line_length;
+
+        return (remaining_space >= 0) ? (int) Math.pow(remaining_space, 3) : Integer.MAX_VALUE;
+    }
+
+    private static int optimalBadness(int[][] table, ArrayList<Integer> optimal_breaks) {
+        int num_words = table[0].length;
+        ArrayList<Integer> breaks = new ArrayList<>();
+        int badness[] = new int[num_words + 1];
+        badness[0] = 0;
+        for (int i = 1; i <= num_words; i++) {
+            int min_badness = Integer.MAX_VALUE;
+            for (int j = 0; j < i; j++) {
+                int curr_badness;
+                int table_value = table[j][i - 1];
+                if (table_value == Integer.MAX_VALUE) {
+                    curr_badness = Integer.MAX_VALUE;
+                } else {
+                    curr_badness = badness[j] + table_value;
+                }
+
+                if (curr_badness < min_badness) {
+                    min_badness = curr_badness;
+
+                    try {
+                        breaks.set(i - 1, j);
+                    } catch (IndexOutOfBoundsException e) {
+                        breaks.add(j);
+                    }
+                }
+            }
+            badness[i] = min_badness;
+        }
+
+        optimal_breaks.clear();
+        optimal_breaks.addAll(optimalBreaks(breaks));
+
+        return badness[num_words];
+    }
+
+    private static List<Integer> optimalBreaks(List<Integer> all_breaks) {
+        int curr_break = all_breaks.get(all_breaks.size() - 1);
+        if (curr_break == 0) {
+            return new ArrayList<Integer>();
+        }
+        List<Integer> optimal_breaks = optimalBreaks(all_breaks.subList(0, curr_break));
+        optimal_breaks.add(curr_break);
+
+        return optimal_breaks;
+    }
+}
