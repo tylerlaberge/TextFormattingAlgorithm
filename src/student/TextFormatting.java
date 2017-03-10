@@ -4,14 +4,12 @@ package student;
  * You should implement the static method:
  *   formatParagraph - which formats one paragraph
  */
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 
 public class TextFormatting {
     /*
-    simple greedy paragraph formating that just packs each line as full as possible
+    simple greedy paragraph formatting that just packs each line as full as possible
     this will usually not give an optimal result
 
     input:
@@ -28,7 +26,6 @@ public class TextFormatting {
         int[][] table = buildTable(words, width);
         ArrayList<Integer> optimal_breaks = new ArrayList<>();
         int badness = optimalBadness(table, optimal_breaks);
-
         int previous_break = 0;
         for(int optimal_break : optimal_breaks) {
             result.add(String.join(" ", Arrays.copyOfRange(words, previous_break, optimal_break)));
@@ -48,21 +45,26 @@ public class TextFormatting {
         int[][] table = new int[words.length][words.length];
 
         for (int i = 0; i < words.length; i++) {
+            StringBuilder sb = new StringBuilder();
             for (int j = i; j < words.length; j++) {
-                table[i][j] = calculateBadness(Arrays.copyOfRange(words, i, j + 1), width);
+                if (j != i) {
+                    sb.append(' ');
+                }
+                sb.append(words[j]);
+
+                table[i][j] = calculateBadness(sb.length(), width);
             }
         }
         return table;
     }
 
-    private static int calculateBadness(String[] words, int width) {
-        int line_length = String.join(" ", (CharSequence[]) words).length();
-        int remaining_space = width - line_length;
+    private static int calculateBadness(int string_length, int max_width) {
+        int remaining_space = max_width - string_length;
 
         return (remaining_space >= 0) ? (int) Math.pow(remaining_space, 3) : Integer.MAX_VALUE;
     }
 
-    private static int optimalBadness(int[][] table, ArrayList<Integer> optimal_breaks) {
+    private static int optimalBadness(int[][] table, List<Integer> optimal_breaks) {
         int num_words = table[0].length;
         ArrayList<Integer> breaks = new ArrayList<>();
         int badness[] = new int[num_words + 1];
@@ -100,7 +102,7 @@ public class TextFormatting {
     private static List<Integer> optimalBreaks(List<Integer> all_breaks) {
         int curr_break = all_breaks.get(all_breaks.size() - 1);
         if (curr_break == 0) {
-            return new ArrayList<Integer>();
+            return new ArrayList<>();
         }
         List<Integer> optimal_breaks = optimalBreaks(all_breaks.subList(0, curr_break));
         optimal_breaks.add(curr_break);
