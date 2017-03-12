@@ -1,12 +1,9 @@
 package student;
-/*
- * This class is meant to contain your algorithm.
- * You should implement the static method:
- *   formatParagraph - which formats one paragraph
- */
 import java.util.*;
 
-
+/*
+ * A class used for neatly formatting text.
+ */
 public class TextFormatting {
     /*
      * A dynamic paragraph formatting algorithm to neatly format text evenly.
