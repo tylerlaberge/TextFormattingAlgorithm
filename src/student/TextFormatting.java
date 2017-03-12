@@ -28,10 +28,10 @@ public class TextFormatting {
         int badness = optimalBadness(table, optimal_breaks);
         int previous_break = 0;
         for(int optimal_break : optimal_breaks) {
-            result.add(String.join(" ", Arrays.copyOfRange(words, previous_break, optimal_break)));
+            result.add(String.join(" ", (CharSequence[]) Arrays.copyOfRange(words, previous_break, optimal_break)));
             previous_break = optimal_break;
         }
-        result.add(String.join(" ", Arrays.copyOfRange(words, previous_break, words.length)));
+        result.add(String.join(" ", (CharSequence[]) Arrays.copyOfRange(words, previous_break, words.length)));
 
         return badness;
     }
